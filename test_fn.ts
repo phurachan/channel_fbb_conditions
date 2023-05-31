@@ -24,7 +24,7 @@ export class TestFn {
         // "R_AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
         // "G_CPE": [...listCPE].map((e: any) => ({ ...e })),
         // "G_CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
-        // "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
+        "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
         // "G_AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
         // "Cancel": [...listCancel].map((e: any) => ({ ...e })),
     }
@@ -294,7 +294,19 @@ export class TestFn {
                         isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
                         await self.saveTransection('023', self.deviceListUpdate[i].SERIAL_NO);
                     }
+                } else if (self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === 'wifi router' && self.deviceListUpdate[i].SN_PATTERN === 'B'
+                    && self.deviceListUpdate[i].OLD_STATUS_DESC === 'In service' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive'
+                    && this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)) {
+                    checkPromo = await self.newOnChangePromotion(self.deviceListUpdate[i]);
+                    console.log('checkPromo => ', checkPromo)
+                    if (checkPromo) {
+                        isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
+                        await self.saveTransection('03', self.deviceListUpdate[i].SERIAL_NO);
 
+                    } else {
+                        nextItem = false;
+                        successFull = false;
+                    }
                 } else {
                     // wifi ที่ SN_PATTERN ไม่เท่ากับ 'R'หรือ CPE
                     if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'Inactive' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive') {
@@ -302,6 +314,17 @@ export class TestFn {
                     } else if (Object.keys(found_deleteOTC).length > 0) {
                         await self.newOnChangeDeleteOTC(found_deleteOTC);
                     }
+                    // if (self.deviceListUpdate[i].STATUS_DESC === 'Inactive' && this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)) {
+                    //     checkPromo = await self.newOnChangePromotion(self.deviceListUpdate[i]);
+                    //     console.log('checkPromo => ', checkPromo)
+                    //     if (checkPromo) {
+                    //         isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
+                    //         await self.saveTransection('03', self.deviceListUpdate[i].SERIAL_NO);
+                    //     } else {
+                    //         nextItem = false;
+                    //         successFull = false;
+                    //     }
+                    // }
                     isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
                     await self.saveTransection('03', self.deviceListUpdate[i].SERIAL_NO);
                 }
@@ -442,8 +465,8 @@ export class TestFn {
     getCustomerProfileObject() {
         return {
             // Used =======================================
-            // "relocateState": "-",
-            "relocateState": "Relocation",
+            "relocateState": "-",
+            // "relocateState": "Relocation",
             "status": "Active",
             "orderStatus": "",
             // =======================================
