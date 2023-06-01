@@ -32,19 +32,6 @@ export class TestFn {
     // "WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
     // "AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
     // "AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
-    // data: [
-    //   {
-    //     SERIAL_NO: "20222225000200",
-    //     CPE_TYPE_MAP: "WIFI",
-    //     OLD_STATUS_DESC: "In service",
-    //     SN_PATTERN: "R",
-    //     newlocationFlag: "Y",
-    //     REGISTER_DATE: "8/1/2019",
-    //     STATUS_DESC: "Return",
-    //     PENALTY_PRODUCT_CODE: "P17099884",
-    //     PENALTY: "2500.0",
-    //   },
-    // ],
   };
 
   delay = (time: number) => new Promise((res) => setTimeout(res, time));
