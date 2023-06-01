@@ -18,13 +18,13 @@ export class TestFn {
     currentFileName: string = "";
 
     exportCsv: any = {
-        // "R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
+        "R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
         // "R_CPERelocate_TW": [...listCPERelocate_TW].map((e: any) => ({ ...e })),
         // "R_WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
         // "R_AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
         // "G_CPE": [...listCPE].map((e: any) => ({ ...e })),
         // "G_CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
-        "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
+        // "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
         // "G_AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
         // "Cancel": [...listCancel].map((e: any) => ({ ...e })),
     }
@@ -263,36 +263,39 @@ export class TestFn {
                     // console.log('wifi router', self.deviceListUpdate[i]);
 
                 } else if (self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === 'ais playbox') {
-
-                    if ((profileStatus.status !== 'Disconnect - Terminate' && profileStatus.status !== 'Disconnect - Customer Request') ||
-                        (profileStatus.orderStatus !== 'Disconnect - Terminate' && profileStatus.orderStatus !== 'Disconnect - Customer Request')) {
-
-                        if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'Inactive' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive') {
-                            //nothing
-                        } else if (Object.keys(found_deleteOTC).length > 0) {
-                            await self.newOnChangeDeleteOTC(found_deleteOTC);
-                        }
-
-                        checkService = await self.newOnChangeServiceCallApi(self.deviceListUpdate[i]);
-
-                        if (checkService) {
-                            isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
-                            if (isUpdateCpe) {
-                                await self.saveTransection('02', self.deviceListUpdate[i].SERIAL_NO);
-                            }
-                        } else {
-                            nextItem = false;
-                            successFull = false;
-                        }
-
+                    if (self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === 'ais playbox' && self.deviceListUpdate[i].SN_PATTERN === 'S') {
+                        //nothing
                     } else {
-                        if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'Inactive' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive') {
-                            //nothing
-                        } else if (Object.keys(found_deleteOTC).length > 0) {
-                            await self.newOnChangeDeleteOTC(found_deleteOTC);
+                        if ((profileStatus.status !== 'Disconnect - Terminate' && profileStatus.status !== 'Disconnect - Customer Request') ||
+                            (profileStatus.orderStatus !== 'Disconnect - Terminate' && profileStatus.orderStatus !== 'Disconnect - Customer Request')) {
+
+                            if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'Inactive' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive') {
+                                //nothing
+                            } else if (Object.keys(found_deleteOTC).length > 0) {
+                                await self.newOnChangeDeleteOTC(found_deleteOTC);
+                            }
+
+                            checkService = await self.newOnChangeServiceCallApi(self.deviceListUpdate[i]);
+
+                            if (checkService) {
+                                isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
+                                if (isUpdateCpe) {
+                                    await self.saveTransection('02', self.deviceListUpdate[i].SERIAL_NO);
+                                }
+                            } else {
+                                nextItem = false;
+                                successFull = false;
+                            }
+
+                        } else {
+                            if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'Inactive' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive') {
+                                //nothing
+                            } else if (Object.keys(found_deleteOTC).length > 0) {
+                                await self.newOnChangeDeleteOTC(found_deleteOTC);
+                            }
+                            isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
+                            await self.saveTransection('023', self.deviceListUpdate[i].SERIAL_NO);
                         }
-                        isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
-                        await self.saveTransection('023', self.deviceListUpdate[i].SERIAL_NO);
                     }
                 } else if (self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === 'wifi router' && self.deviceListUpdate[i].SN_PATTERN === 'B'
                     && self.deviceListUpdate[i].OLD_STATUS_DESC === 'In service' && self.deviceListUpdate[i].STATUS_DESC === 'Inactive'
@@ -465,8 +468,8 @@ export class TestFn {
     getCustomerProfileObject() {
         return {
             // Used =======================================
-            "relocateState": "-",
-            // "relocateState": "Relocation",
+            // "relocateState": "-",
+            "relocateState": "Relocation",
             "status": "Active",
             "orderStatus": "",
             // =======================================
