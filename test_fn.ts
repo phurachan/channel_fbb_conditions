@@ -25,7 +25,7 @@ export class TestFn {
 
   exportCsv: any = {
     // "CPE": [...listCPE].map((e: any) => ({ ...e })),
-    dataTest: [...dataTest].map((e: any) => ({ ...e })),
+    listCancel: [...listCancel].map((e: any) => ({ ...e })),
     // "CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
     // "CPERelocate_TW": [...listCPERelocate_TW].map((e: any) => ({ ...e })),
     // "WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
@@ -36,11 +36,11 @@ export class TestFn {
     //   {
     //     SERIAL_NO: "20222225000200",
     //     CPE_TYPE_MAP: "WIFI",
-    //     OLD_STATUS_DESC: "Inactive",
+    //     OLD_STATUS_DESC: "In service",
     //     SN_PATTERN: "R",
     //     newlocationFlag: "Y",
     //     REGISTER_DATE: "8/1/2019",
-    //     STATUS_DESC: "Inactive",
+    //     STATUS_DESC: "Return",
     //     PENALTY_PRODUCT_CODE: "P17099884",
     //     PENALTY: "2500.0",
     //   },
@@ -105,41 +105,32 @@ export class TestFn {
     }
     console.log("found_deleteOTC  => ", found_deleteOTC);
 
-    console.log(
-      this.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase(),
-      "dataTest"
-    );
-
     let delete_OTC_CANCEL = {};
     if (appUseMode == "cancel") {
-      if (this.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === "wifi") {
+      if (
+        this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+        this.deviceListUpdate[i].SN_PATTERN === "B"
+      ) {
         if (
-          this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-          this.deviceListUpdate[i].SN_PATTERN === "R"
+          this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+          this.deviceListUpdate[i].PENALTY >= 0
         ) {
           if (
-            this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
-            this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
-            this.deviceListUpdate[i].PENALTY >= 0
+            this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+            (this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+              this.deviceListUpdate[i].STATUS_DESC === "Inactive")
           ) {
-            if (
-              this.deviceListUpdate[i].STATUS_DESC === "Return" ||
-              this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
-            ) {
-              delete_OTC_CANCEL = this.deviceListUpdate[i];
-            }
-          }
-        } else if (
-          this.deviceListUpdate[i].OLD_STATUS_DESC === "In service" &&
-          this.deviceListUpdate[i].SN_PATTERN === "R"
-        ) {
-          if (this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid") {
+            delete_OTC_CANCEL = this.deviceListUpdate[i];
+          } else if (
+            this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid" &&
+            this.checkRegisterDateINP(this.deviceListUpdate[i].REGISTER_DATE)
+          ) {
             delete_OTC_CANCEL = this.deviceListUpdate[i];
           }
         }
       } else if (
         this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-        this.deviceListUpdate[i].SN_PATTERN === "B"
+        this.deviceListUpdate[i].SN_PATTERN === "S"
       ) {
         if (
           this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
@@ -148,18 +139,34 @@ export class TestFn {
         ) {
           if (
             this.deviceListUpdate[i].STATUS_DESC === "Return" ||
-            this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
+            this.deviceListUpdate[i].STATUS_DESC === "Inactive"
+          ) {
+            delete_OTC_CANCEL = this.deviceListUpdate[i];
+          }
+        }
+      } else if (
+        this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+        this.deviceListUpdate[i].SN_PATTERN === "R"
+      ) {
+        if (
+          this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+          this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+          this.deviceListUpdate[i].PENALTY >= 0
+        ) {
+          if (
+            this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+            this.deviceListUpdate[i].STATUS_DESC === "Inactive"
           ) {
             delete_OTC_CANCEL = this.deviceListUpdate[i];
           }
         }
       } else if (
         this.deviceListUpdate[i].OLD_STATUS_DESC === "In service" &&
-        this.deviceListUpdate[i].SN_PATTERN === "B"
+        (this.deviceListUpdate[i].SN_PATTERN === "B" ||
+          this.deviceListUpdate[i].SN_PATTERN === "R")
       ) {
         if (
           this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
-          this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
           this.deviceListUpdate[i].PENALTY >= 0
         ) {
           if (this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid") {
@@ -533,6 +540,12 @@ export class TestFn {
     const registerDate = new Date(date);
     const fixDate = new Date("2019-07-01");
     return registerDate > fixDate;
+  }
+
+  checkRegisterDateINP(date: string) {
+    const registerDate = new Date(date);
+    const fixDate = new Date("2019-07-01");
+    return registerDate < fixDate;
   }
 
   async saveTransection(state: any, serialNo: any) {
