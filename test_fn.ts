@@ -18,9 +18,9 @@ export class TestFn {
     currentFileName: string = "";
 
     exportCsv: any = {
-        "AfterMerge_R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
+        // "AfterMerge_R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
         // "AfterMerge_R_CPERelocate_TW": [...listCPERelocate_TW].map((e: any) => ({ ...e })),
-        // "AfterMerge_R_WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
+        "AfterMerge_R_WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
         // "AfterMerge_R_AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
         // "AfterMerge_G_CPE": [...listCPE].map((e: any) => ({ ...e })),
         // "AfterMerge_G_CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
@@ -189,7 +189,7 @@ export class TestFn {
 
                     }
 
-                } else if (rType === 'wifi router' && self.deviceListUpdate[i].SN_PATTERN === "R") {
+                } else if (rType === 'wifi router' && (self.deviceListUpdate[i].SN_PATTERN === "R" || self.deviceListUpdate[i].SN_PATTERN === "B")) {
                     console.log('device type router');
 
                     if (statusOldDesc === 'in service' && (statusDesc === 'return' || statusDesc === 'inactive' || statusDesc === 'inactive not paid')) {
@@ -234,27 +234,6 @@ export class TestFn {
 
                     }
 
-                } else if (rType === 'wifi router' && self.deviceListUpdate[i].SN_PATTERN === "B") {
-                    if (self.deviceListUpdate[i].OLD_STATUS_DESC === 'In service' && this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)) {
-                        checkPromo = await self.newOnChangePromotion(self.deviceListUpdate[i]);
-                        console.log('checkPromo => ', checkPromo)
-                        if (checkPromo) {
-                            isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
-                            await self.saveTransection('00', self.deviceListUpdate[i].SERIAL_NO);
-
-                        } else {
-                            nextItem = false;
-                            successFull = false;
-                        }
-                    }
-                    // else if (Object.keys(found_deleteOTC).length > 0) {
-                    //     await self.newOnChangeDeleteOTC(found_deleteOTC);
-                    // }
-                    else {
-
-                        isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
-                        await self.saveTransection('00', self.deviceListUpdate[i].SERIAL_NO);
-                    }
                 } else {
                     if (Object.keys(found_deleteOTC).length > 0) {
                         await self.newOnChangeDeleteOTC(found_deleteOTC);
