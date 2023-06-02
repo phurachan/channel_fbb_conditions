@@ -35,7 +35,6 @@ export class TestFn {
     // "AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
     CancelFlow: [...CancelFlow].map((e: any) => ({ ...e })),
   };
-
   delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
   async exportCsvAll() {
@@ -56,43 +55,47 @@ export class TestFn {
       );
     }
   }
-
   async stepWaveAndUpdate() {
     let successFull = true;
     let nextItem = true;
     const self = this;
     const appUseMode = this.gAppUseMode;
+    // console.log('deviceListUpdate => ', this.deviceListUpdate);
     if (this.deviceListUpdate.length <= 0) return;
     if (this.countUpdate === this.deviceListUpdate.length - 1) {
       nextItem = false;
     }
+    // const finishLoop = this.deviceListUpdate.forEach(async(item, index) => {
     const i = this.countUpdate;
+    // console.log('deviceListUpdate => ', self.deviceListUpdate[i]);
+    // console.log('deviceDefaultList => ', self.deviceDefaultList);
     // status เดิม = inactive
     // date > 1/7/2019
     // มี PENALTY_PRODUCT_CODE
     // มีค่า PENALTY > 0 ,
     // update เป็น return , inactive not paid
+
     let found_deleteOTC = {};
-    if (appUseMode == "return") {
+    if (
+      this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+      this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+      this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+      +this.deviceListUpdate[i].PENALTY > 0
+    ) {
+      console.log(
+        "OLD_STATUS_DESC => ",
+        this.deviceListUpdate[i].OLD_STATUS_DESC
+      );
+
       if (
-        (this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-          this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
-          this.deviceListUpdate[i].SN_PATTERN === "B") ||
-        ("R" &&
-          this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
-          +this.deviceListUpdate[i].PENALTY > 0)
+        this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+        this.deviceListUpdate[i].STATUS_DESC === "Inactive not Paid" ||
+        this.deviceListUpdate[i].STATUS_DESC === "Inactive"
       ) {
-        if (
-          this.deviceListUpdate[i].STATUS_DESC === "Return" ||
-          this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid" ||
-          this.deviceListUpdate[i].STATUS_DESC === "Inactive"
-        ) {
-          console.log("STATUS_DESC => ", this.deviceListUpdate[i].STATUS_DESC);
-          found_deleteOTC = this.deviceListUpdate[i];
-        }
+        console.log("STATUS_DESC => ", this.deviceListUpdate[i].STATUS_DESC);
+        found_deleteOTC = this.deviceListUpdate[i];
       }
     }
-    console.log("found_deleteOTC  => ", found_deleteOTC);
 
     let delete_OTC_CANCEL = {};
     if (appUseMode == "cancel") {
@@ -134,13 +137,16 @@ export class TestFn {
     }
     console.log("delete_OTC_CANCEL => ", delete_OTC_CANCEL);
 
+    // this.pageLoadingService.openLoading();
     this.isSuccess = true;
     let isUpdateCpe = false;
     let checkPromo: any;
     let checkService: any;
+    // const profileStatus = await this.getCustomerProfileObject();
     const profileStatus: any = await this.getCustomerProfileObject();
     const relocateState = profileStatus.relocateState;
 
+    // ==========================================================
     // console.log("--------------------- [relocateState]: ", relocateState, " ---------------------");
     console.log(
       `addData [${i}]------------------------------------------------------------------`
@@ -149,8 +155,11 @@ export class TestFn {
     //  ==========================================================
 
     if (appUseMode === "return" || appUseMode == "wttx") {
+      // console.log('profile object => ', this.getCustomerProfileObject());
+      // const relocateState = localStorage.getItem("relocateState");
+      console.log("Relocate Status => ", relocateState);
       if (relocateState === "Relocation") {
-        // console.log('======== update CPE only =========== ');
+        console.log("======== update CPE only =========== ");
         // nothing
         // if (Object.keys(found_deleteOTC).length > 0) {
         //   await self.newOnChangeDeleteOTC(found_deleteOTC);
@@ -166,13 +175,13 @@ export class TestFn {
         let condFlag = self.deviceListUpdate[i].newlocationFlag;
         let rType = self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase();
 
-        // console.log('statusDesc =>', statusDesc);
-        // console.log('statusOldDesc =>', statusOldDesc);
-        // console.log('CPE_TYPE_MAP =>', rType);
-        // console.log('newlocationFlag =>', condFlag);
+        console.log("statusDesc =>", statusDesc);
+        console.log("statusOldDesc =>", statusOldDesc);
+        console.log("CPE_TYPE_MAP =>", rType);
+        console.log("newlocationFlag =>", condFlag);
 
         if (rType === "ais playbox" && statusOldDesc === "in service") {
-          // console.log('device type playbox ');
+          console.log("device type playbox ");
 
           if (
             condFlag === "Y" &&
@@ -180,17 +189,17 @@ export class TestFn {
               statusDesc === "inactive" ||
               statusDesc === "inactive not paid")
           ) {
-            // console.log('check condition 1');
+            console.log("check condition 1");
             checkService = await self.newOnChangeServiceCallApi(
               self.deviceListUpdate[i]
             );
-            // console.log('checkService => ',checkService);
+            console.log("checkService => ", checkService);
 
             if (checkService) {
               isUpdateCpe = await self.newStepUpdateCpe(
                 self.deviceListUpdate[i].SERIAL_NO
               );
-              // console.log('updateCPE ', isUpdateCpe);
+              console.log("updateCPE ", isUpdateCpe);
               if (isUpdateCpe) {
                 await self.saveTransection(
                   "02",
@@ -207,11 +216,11 @@ export class TestFn {
               statusDesc === "inactive" ||
               statusDesc === "inactive not paid")
           ) {
-            // console.log('check condition 2');
+            console.log("check condition 2");
             isUpdateCpe = await self.newStepUpdateCpe(
               self.deviceListUpdate[i].SERIAL_NO
             );
-            // console.log('updateCPE ', isUpdateCpe);
+            console.log("updateCPE ", isUpdateCpe);
             if (isUpdateCpe) {
               await self.saveTransection(
                 "02",
@@ -223,7 +232,7 @@ export class TestFn {
           rType === "wifi router" &&
           self.deviceListUpdate[i].SN_PATTERN === "R"
         ) {
-          // console.log('device type router');
+          console.log("device type router");
 
           if (
             statusOldDesc === "in service" &&
@@ -231,13 +240,13 @@ export class TestFn {
               statusDesc === "inactive" ||
               statusDesc === "inactive not paid")
           ) {
-            // console.log('check condition router');
+            console.log("check condition router");
             if (condFlag === "Y") {
-              // console.log('check condition 1');
+              console.log("check condition 1");
               checkPromo = await self.newOnChangePromotion(
                 self.deviceListUpdate[i]
               );
-              // console.log('checkPromo => ',checkPromo)
+              console.log("checkPromo => ", checkPromo);
               if (checkPromo) {
                 isUpdateCpe = await self.newStepUpdateCpe(
                   self.deviceListUpdate[i].SERIAL_NO
@@ -251,12 +260,12 @@ export class TestFn {
                 successFull = false;
               }
             } else if (condFlag === "N") {
-              // console.log('check condition 2');
+              console.log("check condition 2");
 
               isUpdateCpe = await self.newStepUpdateCpe(
                 self.deviceListUpdate[i].SERIAL_NO
               );
-              // console.log('updateCPE ', isUpdateCpe);
+              console.log("updateCPE ", isUpdateCpe);
               if (isUpdateCpe) {
                 await self.saveTransection(
                   "02",
@@ -268,7 +277,7 @@ export class TestFn {
             statusOldDesc === "inactive" &&
             (statusDesc === "return" || statusDesc === "inactive not paid")
           ) {
-            // console.log('check condition 3, 4');
+            console.log("check condition 3, 4");
 
             if (condFlag === "Y" || condFlag === "N") {
               if (Object.keys(found_deleteOTC).length > 0) {
@@ -282,15 +291,80 @@ export class TestFn {
               );
             }
           }
+        } else if (
+          rType === "wifi router" &&
+          self.deviceListUpdate[i].SN_PATTERN === "B"
+        ) {
+          if (
+            self.deviceListUpdate[i].OLD_STATUS_DESC === "In service" &&
+            this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)
+          ) {
+            checkPromo = await self.newOnChangePromotion(
+              self.deviceListUpdate[i]
+            );
+            console.log("checkPromo => ", checkPromo);
+            if (checkPromo) {
+              isUpdateCpe = await self.newStepUpdateCpe(
+                self.deviceListUpdate[i].SERIAL_NO
+              );
+              await self.saveTransection(
+                "00",
+                self.deviceListUpdate[i].SERIAL_NO
+              );
+            } else {
+              nextItem = false;
+              successFull = false;
+            }
+          }
+          // else if (Object.keys(found_deleteOTC).length > 0) {
+          //     await self.newOnChangeDeleteOTC(found_deleteOTC);
+          // }
+          else {
+            isUpdateCpe = await self.newStepUpdateCpe(
+              self.deviceListUpdate[i].SERIAL_NO
+            );
+            await self.saveTransection(
+              "00",
+              self.deviceListUpdate[i].SERIAL_NO
+            );
+          }
         } else {
           if (Object.keys(found_deleteOTC).length > 0) {
             await self.newOnChangeDeleteOTC(found_deleteOTC);
           }
-
-          isUpdateCpe = await self.newStepUpdateCpe(
-            self.deviceListUpdate[i].SERIAL_NO
-          );
-          await self.saveTransection("00", self.deviceListUpdate[i].SERIAL_NO);
+          if (
+            self.deviceListUpdate[i].SN_PATTERN === "B" &&
+            statusOldDesc === "in service" &&
+            this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+            self.deviceListUpdate[i].STATUS_DESC === "Inactive"
+          ) {
+            checkService = await self.newOnChangeServiceCallApi(
+              self.deviceListUpdate[i]
+            );
+            if (checkService) {
+              isUpdateCpe = await self.newStepUpdateCpe(
+                self.deviceListUpdate[i].SERIAL_NO
+              );
+              console.log("updateCPE ", isUpdateCpe);
+              if (isUpdateCpe) {
+                await self.saveTransection(
+                  "00",
+                  self.deviceListUpdate[i].SERIAL_NO
+                );
+              }
+            } else {
+              nextItem = false;
+              successFull = false;
+            }
+          } else {
+            isUpdateCpe = await self.newStepUpdateCpe(
+              self.deviceListUpdate[i].SERIAL_NO
+            );
+            await self.saveTransection(
+              "00",
+              self.deviceListUpdate[i].SERIAL_NO
+            );
+          }
         }
       } else {
         if (
@@ -329,54 +403,86 @@ export class TestFn {
           self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === "ais playbox"
         ) {
           if (
-            (profileStatus.status !== "Disconnect - Terminate" &&
-              profileStatus.status !== "Disconnect - Customer Request") ||
-            (profileStatus.orderStatus !== "Disconnect - Terminate" &&
-              profileStatus.orderStatus !== "Disconnect - Customer Request")
+            self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() ===
+              "ais playbox" &&
+            self.deviceListUpdate[i].SN_PATTERN === "S"
           ) {
+            //nothing
+          } else {
             if (
-              self.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-              self.deviceListUpdate[i].STATUS_DESC === "Inactive"
+              (profileStatus.status !== "Disconnect - Terminate" &&
+                profileStatus.status !== "Disconnect - Customer Request") ||
+              (profileStatus.orderStatus !== "Disconnect - Terminate" &&
+                profileStatus.orderStatus !== "Disconnect - Customer Request")
             ) {
-              //nothing
-            } else if (Object.keys(found_deleteOTC).length > 0) {
-              await self.newOnChangeDeleteOTC(found_deleteOTC);
-            }
+              if (
+                self.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+                self.deviceListUpdate[i].STATUS_DESC === "Inactive"
+              ) {
+                //nothing
+              } else if (Object.keys(found_deleteOTC).length > 0) {
+                await self.newOnChangeDeleteOTC(found_deleteOTC);
+              }
 
-            checkService = await self.newOnChangeServiceCallApi(
-              self.deviceListUpdate[i]
-            );
+              checkService = await self.newOnChangeServiceCallApi(
+                self.deviceListUpdate[i]
+              );
 
-            if (checkService) {
+              if (checkService) {
+                isUpdateCpe = await self.newStepUpdateCpe(
+                  self.deviceListUpdate[i].SERIAL_NO
+                );
+                if (isUpdateCpe) {
+                  await self.saveTransection(
+                    "02",
+                    self.deviceListUpdate[i].SERIAL_NO
+                  );
+                }
+              } else {
+                nextItem = false;
+                successFull = false;
+              }
+            } else {
+              if (
+                self.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+                self.deviceListUpdate[i].STATUS_DESC === "Inactive"
+              ) {
+                //nothing
+              } else if (Object.keys(found_deleteOTC).length > 0) {
+                await self.newOnChangeDeleteOTC(found_deleteOTC);
+              }
               isUpdateCpe = await self.newStepUpdateCpe(
                 self.deviceListUpdate[i].SERIAL_NO
               );
-              if (isUpdateCpe) {
-                await self.saveTransection(
-                  "02",
-                  self.deviceListUpdate[i].SERIAL_NO
-                );
-              }
-            } else {
-              nextItem = false;
-              successFull = false;
+              await self.saveTransection(
+                "023",
+                self.deviceListUpdate[i].SERIAL_NO
+              );
             }
-          } else {
-            if (
-              self.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-              self.deviceListUpdate[i].STATUS_DESC === "Inactive"
-            ) {
-              //nothing
-            } else if (Object.keys(found_deleteOTC).length > 0) {
-              await self.newOnChangeDeleteOTC(found_deleteOTC);
-            }
+          }
+        } else if (
+          self.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() ===
+            "wifi router" &&
+          self.deviceListUpdate[i].SN_PATTERN === "B" &&
+          self.deviceListUpdate[i].OLD_STATUS_DESC === "In service" &&
+          self.deviceListUpdate[i].STATUS_DESC === "Inactive" &&
+          this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)
+        ) {
+          checkPromo = await self.newOnChangePromotion(
+            self.deviceListUpdate[i]
+          );
+          console.log("checkPromo => ", checkPromo);
+          if (checkPromo) {
             isUpdateCpe = await self.newStepUpdateCpe(
               self.deviceListUpdate[i].SERIAL_NO
             );
             await self.saveTransection(
-              "023",
+              "03",
               self.deviceListUpdate[i].SERIAL_NO
             );
+          } else {
+            nextItem = false;
+            successFull = false;
           }
         } else {
           // wifi ที่ SN_PATTERN ไม่เท่ากับ 'R'หรือ CPE
@@ -388,6 +494,17 @@ export class TestFn {
           } else if (Object.keys(found_deleteOTC).length > 0) {
             await self.newOnChangeDeleteOTC(found_deleteOTC);
           }
+          // if (self.deviceListUpdate[i].STATUS_DESC === 'Inactive' && this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE)) {
+          //     checkPromo = await self.newOnChangePromotion(self.deviceListUpdate[i]);
+          //     console.log('checkPromo => ', checkPromo)
+          //     if (checkPromo) {
+          //         isUpdateCpe = await self.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
+          //         await self.saveTransection('03', self.deviceListUpdate[i].SERIAL_NO);
+          //     } else {
+          //         nextItem = false;
+          //         successFull = false;
+          //     }
+          // }
           isUpdateCpe = await self.newStepUpdateCpe(
             self.deviceListUpdate[i].SERIAL_NO
           );
@@ -395,6 +512,12 @@ export class TestFn {
         }
       }
     } else if (appUseMode === "cancel") {
+      /**
+       * 17-05-2022 : flow cancel ONU pattern sale/S when summit send api  updateCpeInfo and  suspendReconnect,
+       * updateCpeInfo send status 15
+       * fbbid 8850073066
+       */
+      console.log("update cancel => ", self.deviceListUpdate[i]);
       if (Object.keys(delete_OTC_CANCEL).length > 0) {
         await self.newOnChangeDeleteOTC(delete_OTC_CANCEL);
       }
@@ -402,10 +525,11 @@ export class TestFn {
       isUpdateCpe = await this.newStepUpdateCpe(
         self.deviceListUpdate[i].SERIAL_NO
       );
+      console.log("isUpdateCpe => ", isUpdateCpe);
     }
 
     if (isUpdateCpe) {
-      // this.setCustomerDeviceObjectSuccessUpdate(self.deviceListUpdate[i].SERIAL_NO)
+      // this.myChannelFbbService.setCustomerDeviceObjectSuccessUpdate(self.deviceListUpdate[i].SERIAL_NO)
     }
 
     this.countUpdate++;
@@ -413,20 +537,21 @@ export class TestFn {
       await this.stepWaveAndUpdate();
     } else {
       if (appUseMode === "cancel") {
+        // console.log('check call suspend = ', self.callSuspend);
         const suspend = await this.confirmSusspend(0);
         if (!suspend) {
           self.deviceListUpdate.forEach((d) => {
-            //   this.setCustomerDeviceObjectFailUpdate(d.SERIAL_NO);
+            // this.myChannelFbbService.setCustomerDeviceObjectFailUpdate(d.SERIAL_NO);
           });
         }
-        // console.log('suspend => ',suspend);
+        console.log("suspend => ", suspend);
       } else if (successFull) {
-        //   self.callPopup('อัพเดทสถานะ คืนอุปกรณ์ และ AIS PLAYBOX สำเร็จ');
+        // self.callPopup('อัพเดทสถานะ คืนอุปกรณ์ และ AIS PLAYBOX สำเร็จ');
       }
 
-      // self.setRouteLink('../' + environment.appPath + '/'+appUseMode, 'href', self.route);
+      // self.setRouteLink('../' + environment.appPath + '/' + appUseMode, 'href', self.route);
       // localStorage.removeItem("dummySerial");
-      // // console.log('clear dummySerial');
+      // console.log('clear dummySerial');
       // this.pageLoadingService.closeLoading();
       this.countUpdate = 0;
     }
@@ -499,12 +624,6 @@ export class TestFn {
     return registerDate > fixDate;
   }
 
-  checkRegisterDateINP(date: string) {
-    const registerDate = new Date(date);
-    const fixDate = new Date("2019-07-01");
-    return registerDate < fixDate;
-  }
-
   async saveTransection(state: any, serialNo: any) {
     console.log(
       `saveTransection [${this.countUpdate}]------------------------------------------------------------------`
@@ -537,8 +656,8 @@ export class TestFn {
   getCustomerProfileObject() {
     return {
       // Used =======================================
-      relocateState: "-",
-      // "relocateState": "Relocation",
+      // "relocateState": "-",
+      relocateState: "Relocation",
       status: "Active",
       orderStatus: "",
       // =======================================
