@@ -27,6 +27,7 @@ export class TestFn {
         // "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
         // "G_AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
         // "Cancel": [...listCancel].map((e: any) => ({ ...e })),
+        // "CancelFlow": [...CancelFlow].map((e: any) => ({ ...e })),
     }
 
     delay = (time: number) => new Promise(res => setTimeout(res, time));
@@ -75,9 +76,45 @@ export class TestFn {
             }
         }
 
-        console.log('found_deleteOTC => ', found_deleteOTC);
-
-        console.log('checkRegisterDate => ', this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE));
+        let delete_OTC_CANCEL = {};
+        if (appUseMode == "cancel") {
+            if (
+                this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+                this.deviceListUpdate[i].SN_PATTERN === "B"
+            ) {
+                if (
+                    this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+                    this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+                    this.deviceListUpdate[i].PENALTY >= 0
+                ) {
+                    if (
+                        this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+                        this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
+                    ) {
+                        delete_OTC_CANCEL = this.deviceListUpdate[i];
+                    }
+                }
+            } else if (
+                this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+                this.deviceListUpdate[i].SN_PATTERN === "R"
+            ) {
+                if (this.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === "wifi") {
+                    if (
+                        this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+                        this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+                        this.deviceListUpdate[i].PENALTY >= 0
+                    ) {
+                        if (
+                            this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+                            this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
+                        ) {
+                            delete_OTC_CANCEL = this.deviceListUpdate[i];
+                        }
+                    }
+                }
+            }
+        }
+        console.log("delete_OTC_CANCEL => ", delete_OTC_CANCEL);
 
         // this.pageLoadingService.openLoading();
         this.isSuccess = true;
@@ -334,19 +371,20 @@ export class TestFn {
             }
 
         } else if (appUseMode === 'cancel') {
-
             /**
              * 17-05-2022 : flow cancel ONU pattern sale/S when summit send api  updateCpeInfo and  suspendReconnect,
              * updateCpeInfo send status 15
-             * fbbid 8850073066 
+             * fbbid 8850073066
              */
-            console.log('update cancel => ', self.deviceListUpdate[i]);
-            if (Object.keys(found_deleteOTC).length > 0) {
-                await self.newOnChangeDeleteOTC(found_deleteOTC);
+            console.log("update cancel => ", self.deviceListUpdate[i]);
+            if (Object.keys(delete_OTC_CANCEL).length > 0) {
+                await self.newOnChangeDeleteOTC(delete_OTC_CANCEL);
             }
 
-            isUpdateCpe = await this.newStepUpdateCpe(self.deviceListUpdate[i].SERIAL_NO);
-            console.log('isUpdateCpe => ', isUpdateCpe);
+            isUpdateCpe = await this.newStepUpdateCpe(
+                self.deviceListUpdate[i].SERIAL_NO
+            );
+            console.log("isUpdateCpe => ", isUpdateCpe);
         }
 
         if (isUpdateCpe) {
