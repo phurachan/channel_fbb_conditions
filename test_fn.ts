@@ -100,7 +100,23 @@ export class TestFn {
         this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
         this.deviceListUpdate[i].SN_PATTERN === "B"
       ) {
-        if (this.deviceListUpdate[i].newlocationFlag === "Y") {
+        if (
+          this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
+          this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
+          this.deviceListUpdate[i].PENALTY >= 0
+        ) {
+          if (
+            this.deviceListUpdate[i].STATUS_DESC === "Return" ||
+            this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
+          ) {
+            delete_OTC_CANCEL = this.deviceListUpdate[i];
+          }
+        }
+      } else if (
+        this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
+        this.deviceListUpdate[i].SN_PATTERN === "R"
+      ) {
+        if (this.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === "wifi") {
           if (
             this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
             this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
@@ -111,26 +127,6 @@ export class TestFn {
               this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
             ) {
               delete_OTC_CANCEL = this.deviceListUpdate[i];
-            }
-          }
-        }
-      } else if (
-        this.deviceListUpdate[i].OLD_STATUS_DESC === "Inactive" &&
-        this.deviceListUpdate[i].SN_PATTERN === "R"
-      ) {
-        if (this.deviceListUpdate[i].newlocationFlag === "Y") {
-          if (this.deviceListUpdate[i].CPE_TYPE_MAP.toLowerCase() === "wifi") {
-            if (
-              this.deviceListUpdate[i].PENALTY_PRODUCT_CODE &&
-              this.checkRegisterDate(this.deviceListUpdate[i].REGISTER_DATE) &&
-              this.deviceListUpdate[i].PENALTY >= 0
-            ) {
-              if (
-                this.deviceListUpdate[i].STATUS_DESC === "Return" ||
-                this.deviceListUpdate[i].STATUS_DESC === "Inactive Not Paid"
-              ) {
-                delete_OTC_CANCEL = this.deviceListUpdate[i];
-              }
             }
           }
         }
