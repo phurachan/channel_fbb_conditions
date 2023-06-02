@@ -18,16 +18,16 @@ export class TestFn {
     currentFileName: string = "";
 
     exportCsv: any = {
-        "R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
-        // "R_CPERelocate_TW": [...listCPERelocate_TW].map((e: any) => ({ ...e })),
-        // "R_WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
-        // "R_AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
-        // "G_CPE": [...listCPE].map((e: any) => ({ ...e })),
-        // "G_CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
-        // "G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
-        // "G_AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
-        // "Cancel": [...listCancel].map((e: any) => ({ ...e })),
-        // "CancelFlow": [...CancelFlow].map((e: any) => ({ ...e })),
+        "AfterMerge_R_CPERelocate": [...listCPERelocate].map((e: any) => ({ ...e })),
+        // "AfterMerge_R_CPERelocate_TW": [...listCPERelocate_TW].map((e: any) => ({ ...e })),
+        // "AfterMerge_R_WifiRouterRelocate": [...listWifiRouterRelocate].map((e: any) => ({ ...e })),
+        // "AfterMerge_R_AISPLAYBOXRelocate": [...listAISPLAYBOXRelocate].map((e: any) => ({ ...e })),
+        // "AfterMerge_G_CPE": [...listCPE].map((e: any) => ({ ...e })),
+        // "AfterMerge_G_CPE_TW": [...listCPE_TW].map((e: any) => ({ ...e })),
+        // "AfterMerge_G_WifiRouter": [...listWifiRouter].map((e: any) => ({ ...e })),
+        // "AfterMerge_G_AISPLAYBOX": [...listAISPLAYBOX].map((e: any) => ({ ...e })),
+        // "AfterMerge_Cancel": [...listCancel].map((e: any) => ({ ...e })),
+        // "AfterMerge_CancelFlow": [...CancelFlow].map((e: any) => ({ ...e })),
     }
 
     delay = (time: number) => new Promise(res => setTimeout(res, time));
