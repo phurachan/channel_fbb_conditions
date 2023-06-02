@@ -1,4 +1,4 @@
-export const listCancel = [
+export const CancelFlow = [
   {
     SERIAL_NO: "20222225000200",
     CPE_TYPE_MAP: "CPE",
